@@ -2,11 +2,17 @@ const axios = require("axios");
 const ImageWrapper = require("./image");
 
 class MidjourneyWrapper extends ImageWrapper {
-  constructor({ apiUrl, apiKey, webhookUrl, processMode = "fast" }) {
+  constructor({
+    apiUrl,
+    apiKey,
+    webhookUrl,
+    processMode = "fast",
+    fallbacks = [],
+  }) {
     super({ apiUrl, apiKey });
     this.webhookUrl = webhookUrl;
     this.processMode = processMode;
-    this.naughtyWords = ["white, high-resolution"];
+    this.fallbacks = fallbacks;
   }
 
   async imagine({ prompt, aspectRatio = "1:1" }) {
@@ -28,10 +34,20 @@ class MidjourneyWrapper extends ImageWrapper {
 
     try {
       const response = await axios(options);
+      console.log(response.data);
       return response.data;
     } catch (error) {
       console.log(error);
-      throw new Error(error);
+
+      for (const fallback of this.fallbacks) {
+        try {
+          return fallback.imagine({ prompt });
+        } catch (error) {
+          console.log(error);
+        }
+      }
+
+      return null;
     }
   }
 

@@ -26,7 +26,8 @@ class DalleWrapper extends ImageWrapper {
 
     try {
       const response = await axios(options);
-      return response.data.data[0].url;;
+      console.log(response.data.data[0].url);
+      return response.data.data[0].url;
     } catch (error) {
       console.log(error);
       throw new Error(error);

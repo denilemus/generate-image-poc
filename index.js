@@ -27,24 +27,6 @@ const DalleWrapper = require("./wrappers/dalle");
 const app = express();
 const port = 3000;
 
-const WRAPPERS = [
-  {
-    wrapper: new MidjourneyWrapper({
-      apiUrl: "https://api.midjourneyapi.xyz/mj/v2",
-      apiKey: process.env.GO_API_KEY,
-      webhookUrl: "",
-    }),
-    name: "⚪Midjourney",
-  },
-  {
-    wrapper: new DalleWrapper({
-      apiUrl: "https://api.openai.com/v1/images",
-      apiKey: process.env.OPEN_AI_KEY,
-    }),
-    name: "🟢Dalle",
-  },
-];
-
 // ■■■■■■■ FUNCTIONS ■■■■■■■
 
 const tryOpenAi = async (prompt) => {
@@ -424,22 +406,23 @@ app.get("/generateImage", async (req, res) => {
     },
   ];
 
-  for (const { seed, profession, section } of DATA) {
-    const prompt = await ImageWrapper.prompt({
-      seed,
-      profession,
-      section,
-    });
+  const prompt = await ImageWrapper.prompt({
+    seed: "",
+    profession: "mason",
+    section: "headerSection",
+  });
 
-    for (const wrapper of WRAPPERS) {
-      try {
-        const response = await wrapper.wrapper.imagine({ prompt });
-        console.log(`${wrapper.name}: ${JSON.stringify(response)}`);
-        break;
-      } catch (error) {
-        console.log(error);
-        console.error(`Error with ${wrapper.name} model. Trying next model...`);
-      }
-    }
-  }
+  const dalleModel = new DalleWrapper({
+    apiUrl: "https://api.openai.com/v1/images",
+    apiKey: process.env.OPEN_AI_KEY,
+  });
+
+  const midjourneyModelWithFallback = new MidjourneyWrapper({
+    apiUrl: "https://api.midjourneyapi.xyz/mj/v2",
+    apiKey: process.env.GO_API_KEY,
+    webhookUrl: "",
+    fallbacks: [dalleModel],
+  });
+
+  midjourneyModelWithFallback.imagine({ prompt });
 });
