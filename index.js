@@ -406,12 +406,6 @@ app.get("/generateImage", async (req, res) => {
     },
   ];
 
-  const prompt = await ImageWrapper.prompt({
-    seed: "",
-    profession: "mason",
-    section: "headerSection",
-  });
-
   const dalleModel = new DalleWrapper({
     apiUrl: "https://api.openai.com/v1/images",
     apiKey: process.env.OPEN_AI_KEY,
@@ -424,5 +418,19 @@ app.get("/generateImage", async (req, res) => {
     fallbacks: [dalleModel],
   });
 
-  midjourneyModelWithFallback.imagine({ prompt });
+  const result = midjourneyModelWithFallback.imagine({
+    prompt: await ImageWrapper.prompt({
+      seed: "",
+      profession: "mason",
+      section: "headerSection",
+    }),
+  });
+
+  // OR
+  
+  // const result = midjourneyModelWithFallback.imagine({
+  //   prompt: "A sample prompt",
+  // });
+
+  console.log(result);
 });
